@@ -1,0 +1,28 @@
+{
+  "name": "publer-client",
+  "version": "0.1.0",
+  "description": "Non-interactive TypeScript client and CLI for Publer API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "publer": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/cli.js",
+    "dev": "tsc -p tsconfig.json --watch"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "publer",
+    "api",
+    "cli"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "typescript": "^5.5.4"
+  }
+}
