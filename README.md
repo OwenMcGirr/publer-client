@@ -34,7 +34,7 @@ Option 2: add the project bin to your PATH (bash/zsh):
 export PATH="/home/owen-mcgirr/source/publer-client/dist:$PATH"
 ```
 
-Environment variables (see `.env.example`):
+Environment variables (see `.env.example`). The CLI loads `.env` automatically:
 
 - `PUBLER_API_TOKEN`
 - `PUBLER_WORKSPACE_ID` (required for most endpoints)

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import "dotenv/config";
 import { readFile } from "fs/promises";
 import { PublerApiError, PublerClient, PublerQuery } from "./client";
 

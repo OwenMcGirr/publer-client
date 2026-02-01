@@ -16,7 +16,7 @@ npm run build
 - Base URL: `https://app.publer.com/api/v1`
 - `Publer-Workspace-Id` header is required for most endpoints.
 
-Environment variables:
+Environment variables (the CLI loads `.env` automatically):
 
 - `PUBLER_API_TOKEN`
 - `PUBLER_WORKSPACE_ID`
