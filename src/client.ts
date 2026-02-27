@@ -1,4 +1,4 @@
-export type PublerQuery = Record<string, string | number | boolean | undefined>;
+export type PublerQuery = Record<string, string | number | boolean | string[] | undefined>;
 
 export interface PublerClientOptions {
   token: string;
@@ -40,6 +40,40 @@ export interface PublerJobStatus {
   plan?: Record<string, unknown>;
 }
 
+export interface PublerMedia {
+  id: string;
+  type: string;
+  name?: string;
+  caption?: string;
+  path: string;
+  thumbnails?: Record<string, string>;
+  created_at?: string;
+  updated_at?: string;
+  favorite?: boolean;
+  in_library?: boolean;
+  width?: number;
+  height?: number;
+  source?: string;
+  validity?: Record<string, unknown>;
+}
+
+export interface PublerMediaListResponse {
+  media: PublerMedia[];
+  total: number;
+}
+
+export interface PublerUploadMediaOptions {
+  inLibrary?: boolean;
+  directUpload?: boolean;
+}
+
+export interface PublerListMediaParams {
+  page?: number;
+  types?: string[];
+  ids?: string[];
+  search?: string;
+}
+
 export interface PublerRequestOptions {
   query?: PublerQuery;
   body?: unknown;
@@ -63,7 +97,12 @@ export class PublerClient {
 
     if (options.query) {
       for (const [key, value] of Object.entries(options.query)) {
-        if (value !== undefined) {
+        if (value === undefined) continue;
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            url.searchParams.append(`${key}[]`, item);
+          }
+        } else {
           url.searchParams.set(key, String(value));
         }
       }
@@ -78,10 +117,15 @@ export class PublerClient {
       headers["Publer-Workspace-Id"] = effectiveWorkspaceId;
     }
 
-    let body: string | undefined;
+    let body: string | FormData | undefined;
     if (options.body !== undefined) {
-      headers["Content-Type"] = "application/json";
-      body = JSON.stringify(options.body);
+      if (options.body instanceof FormData) {
+        body = options.body;
+        // Don't set Content-Type — fetch sets it with the correct multipart boundary
+      } else {
+        headers["Content-Type"] = "application/json";
+        body = JSON.stringify(options.body);
+      }
     }
 
     const response = await fetch(url, {
@@ -154,5 +198,26 @@ export class PublerClient {
 
   listPosts(query?: PublerQuery): Promise<Record<string, unknown>> {
     return this.get("/posts", { query, workspaceId: this.workspaceId });
+  }
+
+  uploadMedia(file: Blob, filename: string, options: PublerUploadMediaOptions = {}): Promise<PublerMedia> {
+    const form = new FormData();
+    form.append("file", file, filename);
+    if (options.inLibrary !== undefined) {
+      form.append("in_library", String(options.inLibrary));
+    }
+    if (options.directUpload !== undefined) {
+      form.append("direct_upload", String(options.directUpload));
+    }
+    return this.post<PublerMedia>("/media", form, { workspaceId: this.workspaceId });
+  }
+
+  listMedia(params?: PublerListMediaParams): Promise<PublerMediaListResponse> {
+    const query: PublerQuery = {};
+    if (params?.page !== undefined) query.page = params.page;
+    if (params?.types?.length) query.types = params.types;
+    if (params?.ids?.length) query.ids = params.ids;
+    if (params?.search) query.search = params.search;
+    return this.get("/media", { query, workspaceId: this.workspaceId });
   }
 }

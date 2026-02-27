@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import "dotenv/config";
 import { readFile } from "fs/promises";
+import { basename } from "path";
 import { PublerApiError, PublerClient, PublerQuery } from "./client";
 
 type ArgMap = Record<string, string | boolean>;
@@ -67,6 +68,8 @@ Usage:
   publer posts --workspace <id> [--state scheduled] [--query '{"limit": 10}']
   publer job-status <jobId> --workspace <id>
   publer schedule-post --workspace <id> --json-file ./payload.json
+  publer upload-media --workspace <id> --file ./image.jpg [--in-library] [--direct-upload]
+  publer list-media --workspace <id> [--types photo,video,gif] [--page 0] [--search text] [--ids id1,id2]
   publer request --method GET --path /me
 
 Global flags:
@@ -163,6 +166,40 @@ async function run() {
         throw new Error("Missing payload. Provide --json or --json-file.");
       }
       const payload = await client.schedulePost(jsonBody as Record<string, unknown>);
+      printJson(payload);
+      return;
+    }
+    case "upload-media": {
+      if (!workspaceId) {
+        throw new Error("Missing workspace id. Provide --workspace or PUBLER_WORKSPACE_ID.");
+      }
+      const filePath = getStringFlag(flags, "file");
+      if (!filePath) {
+        throw new Error("Missing --file. Provide a path to the file to upload.");
+      }
+      const inLibrary = flags["in-library"] === true || flags["in-library"] === "true";
+      const directUpload = flags["direct-upload"] === true || flags["direct-upload"] === "true";
+      const fileBuffer = await readFile(filePath);
+      const blob = new Blob([fileBuffer]);
+      const filename = basename(filePath);
+      const payload = await client.uploadMedia(blob, filename, { inLibrary, directUpload });
+      printJson(payload);
+      return;
+    }
+    case "list-media": {
+      if (!workspaceId) {
+        throw new Error("Missing workspace id. Provide --workspace or PUBLER_WORKSPACE_ID.");
+      }
+      const typesRaw = getStringFlag(flags, "types");
+      const idsRaw = getStringFlag(flags, "ids");
+      const search = getStringFlag(flags, "search");
+      const pageRaw = getStringFlag(flags, "page");
+      const payload = await client.listMedia({
+        types: typesRaw ? typesRaw.split(",").map((s) => s.trim()) : undefined,
+        ids: idsRaw ? idsRaw.split(",").map((s) => s.trim()) : undefined,
+        search,
+        page: pageRaw !== undefined ? parseInt(pageRaw, 10) : undefined
+      });
       printJson(payload);
       return;
     }

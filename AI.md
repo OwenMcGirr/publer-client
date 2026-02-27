@@ -30,6 +30,8 @@ Environment variables (the CLI loads `.env` automatically):
 - `POST /posts/schedule`
 - `GET /job_status/:jobId`
 - `GET /posts?state=scheduled`
+- `POST /media` (upload media file, multipart/form-data)
+- `GET /media` (list media library)
 
 ## CLI Commands (Non-Interactive)
 
@@ -42,6 +44,8 @@ publer accounts --workspace <workspace_id>
 publer posts --workspace <workspace_id> --state scheduled
 publer job-status <job_id> --workspace <workspace_id>
 publer schedule-post --workspace <workspace_id> --json-file ./payload.json
+publer upload-media --workspace <workspace_id> --file ./image.jpg [--in-library] [--direct-upload]
+publer list-media --workspace <workspace_id> [--types photo,video,gif] [--page 0] [--search text] [--ids id1,id2]
 publer request --method GET --path /users/me
 ```
 
@@ -103,6 +107,34 @@ const client = new PublerClient({
 
 const me = await client.me();
 const workspaces = await client.listWorkspaces();
+```
+
+## Uploading Media (Example)
+
+Upload a local file to the media library:
+
+```bash
+PUBLER_API_TOKEN=... node dist/cli.js upload-media --workspace <workspace_id> --file ./image.jpg --in-library
+```
+
+The response includes an `id` that can be referenced in post payloads:
+
+```json
+{
+  "media": [
+    {
+      "id": "<media_id>",
+      "type": "image",
+      "alt_text": "Descriptive text"
+    }
+  ]
+}
+```
+
+List media with optional filters:
+
+```bash
+PUBLER_API_TOKEN=... node dist/cli.js list-media --workspace <workspace_id> --types photo,video --page 0
 ```
 
 ## Notes
