@@ -117,6 +117,8 @@ Upload a local file to the media library:
 PUBLER_API_TOKEN=... node dist/cli.js upload-media --workspace <workspace_id> --file ./image.jpg --in-library
 ```
 
+The MIME type is auto-detected from the file extension. Supported extensions: `jpg`/`jpeg`, `png`, `gif`, `webp`, `mp4`, `mov`, `avi`, `webm`, `pdf`. Unknown extensions fall back to `application/octet-stream`.
+
 The response includes an `id` that can be referenced in post payloads:
 
 ```json
