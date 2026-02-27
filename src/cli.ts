@@ -180,7 +180,15 @@ async function run() {
       const inLibrary = flags["in-library"] === true || flags["in-library"] === "true";
       const directUpload = flags["direct-upload"] === true || flags["direct-upload"] === "true";
       const fileBuffer = await readFile(filePath);
-      const blob = new Blob([fileBuffer]);
+      const ext = filePath.split(".").pop()?.toLowerCase() ?? "";
+      const mimeTypes: Record<string, string> = {
+        jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+        gif: "image/gif", webp: "image/webp", mp4: "video/mp4",
+        mov: "video/quicktime", avi: "video/x-msvideo", webm: "video/webm",
+        pdf: "application/pdf"
+      };
+      const mimeType = mimeTypes[ext] ?? "application/octet-stream";
+      const blob = new Blob([fileBuffer], { type: mimeType });
       const filename = basename(filePath);
       const payload = await client.uploadMedia(blob, filename, { inLibrary, directUpload });
       printJson(payload);
